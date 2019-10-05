@@ -11,18 +11,14 @@ class Echo(Protocol):
         self.factory = factory
 
     def connectionMade(self):
-        # increase the numbers of protocols connected of the factory
-        self.factory.numProtocols = self.factory.numProtocols + 1
-        # initially write to the connetion the initial message
-        self.transport.write( "Welcome! There are currently %d open connections.\n" % (self.factory.numProtocols,)) 
+        print("Connection Made")
 
     def connectionLost(self, reason):
-        # decrease the numbers of protocols connected of the factory
-        self.factory.numProtocols = self.factory.numProtocols - 1
+        print("Connection Lost")
 
     def dataReceived(self, data):
-        # write the data back (raw)
-        self.transport.write(data)
+        print("[Client]:" + str(data))
+        self.transport.write(data.upper())
 
 # main factory
 class EchoFactory(Factory):
