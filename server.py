@@ -1,31 +1,63 @@
-# import main libraries
-from twisted.internet.protocol import Protocol
-from twisted.internet.protocol import Factory
-from twisted.internet.endpoints import TCP4ServerEndpoint
-from twisted.internet import reactor
+# import libraries
+import select
+import socket
+import sys
 
-# creat a basic echo protocol
-class Echo(Protocol):
+# main FTPServer class
+class FTPServer:
 
-    def __init__(self, factory):
-        self.factory = factory
+    # constructor
+    def __init__(self):
+        # host
+        self.host = '127.0.0.1'
+        # ports
+        self.data_port = 50001
+        self.command_pot = 50002
+        self.data_port = 50003
+        self.size = 1024
+        # socket for the comunication
+        self.commad_socket = None
+        self.data_port = None
 
-    def connectionMade(self):
-        print("Connection Made")
+    # function to open socket
+    def open_socket(self, port):
+        # try to open socket
+        try:
+            # create socket
+            socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # bind to host and port
+            socket.bind((self.host,port))
+            # listen to socket
+            socket.listen(1)
+        except Exception as error:
+            # if socket is open, close
+            if socket:
+                socket.close()
+            print("[Error] " + str(error))
+            sys.exit(1)
+        # then, return socket created
+        return socket
 
-    def connectionLost(self, reason):
-        print("Connection Lost")
+    # run FTPServer
+    def run(self):
+        # open socket for command
+        self.commad_socket = self.open_socket(self.command_pot)
+        self.data_socket = self.open_socket(self.data_port)
+        # enter loop to accept client
+        while True:
+            # accept connect
+            connection, address = self.socket.accept()
 
-    def dataReceived(self, data):
-        print("[Client]:" + str(data))
-        self.transport.write(data.upper())
+            data = connection.recv(16)
 
-# main factory
-class EchoFactory(Factory):
+            while data:
+                print(data)
+                data = connection.recv(16)
 
-    def buildProtocol(self, addr):
-        return Echo(self)
-
-# 8007 is the port you want to run under. Choose something >1024
-reactor.listenTCP(8057, EchoFactory())
-reactor.run()
+            connection.close()
+            
+if __name__ == "__main__":
+    # create FTPServer
+    ftp = FTPServer()
+    # run FTPServer
+    ftp.run()

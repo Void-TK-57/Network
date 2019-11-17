@@ -1,41 +1,58 @@
-# import main libs
-from twisted.internet.protocol import Protocol, ClientFactory
-from twisted.internet import reactor
-from sys import stdout
+# import libraries
+import select
+import socket
+import sys
+"""
+host = '127.0.0.1'
+port = 9855
+size = 1024
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((host,port))
+s.send('PING')
+data = s.recv(size)
+s.close()
+print 'Received:', data
+"""
 
-from functools import partial
+# main client class
+class Client:
 
-# main basic echo protocol
-class Echo(Protocol):
+    # constructor
+    def __init__(self, host = "127.0.0.1", port = 50000):
+        # host
+        self.host = host
+        # port
+        self.port = port
+        self.size = 1024
+        # socket for the comunication
+        self.socket = None
 
-    def __init__(self, factory, msg = "hello World"):
-        self.factory = factory
-        self.msg = msg
+    # function to open socket
+    def open_socket(self):
+        # try to open socket
+        try:
+            # create socket
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # connect
+            self.socket.connect((self.host,self.port))
+        except Exception as error:
+            # if socket is open, close
+            if self.socket:
+                self.socket.close()
+                self.socket = None
+            print("[Error] " + str(error))
+            sys.exit(1)
 
-    def dataReceived(self, data):
-        print("[Server]: " + str(data))
-        self.transport.loseConnection()
-
-    def connectionMade(self):
-        self.transport.write(self.msg)
-
-class EchoClientFactory(ClientFactory):
-
-    def startedConnecting(self, connector):
-        print('Started to connect.')
-
-    def buildProtocol(self, addr):
-        print('Connected.')
-        return Echo(self)
-
-    def clientConnectionLost(self, connector, reason):
-        print('Lost connection.  Reason:', reason)
-
-    def clientConnectionFailed(self, connector, reason):
-        print('Connection failed. Reason:', reason)
-
-# if executed
+    # function to send data
+    def send(self, message):
+        # check if socket is None
+        if self.socket is None:
+            self.open_socket()
+        self.socket.sendall(message.encode())
+        
+            
 if __name__ == "__main__":
-    factory = EchoClientFactory()
-    reactor.connectTCP('localhost', 8057, factory)
-    reactor.run()
+    # create server
+    client = Client(port=50001)
+    # run server
+    client.send("Hello")
