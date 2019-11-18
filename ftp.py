@@ -6,78 +6,12 @@ import traceback
 
 currdir=os.path.abspath('.')
 
-# FTP Server class for a Thread
-class FTPServerThread(threading.Thread):
-
-    # constructor
-    def __init__(self, connection, address):
-        # set connection and address of the control port
-        self.connection = connection
-        self.address = address
-        # data host and port
-        self.data_host = None
-        self.data_port = None
-        # set initial working directory
-        self.base_cwd = os.path.abspath('.')
-        # current directory
-        self.cwd = self.base_cwd
-        # call parent constructor
-        threading.Thread.__init__(self)
-
-    # run method
-    def run(self):
-        # send 220 to the control connection
-        self.connection.send('220 Welcome.\r\n')
-        while True:
-            # receive command
-            cmd = self.connection.recv(256)
-            if not cmd:
-                break
-            else:
-                # Log
-                print("Received: " + str(cmd))
-                # get paramters
-                parameter = cmd[:-2].split(' ')
-                # check command
-                if parameter[0] == "USER":
-                    self.cmd_user(parameter)
-                elif parameter[1] == "PASS":
-                    self.cmd_pass(parameter)
-                else:
-                    self.not_implemented(cmd)
-
-    # user command
-    def cmd_user(self, arg):
-        # send code back to connection
-        self.connection.send('331 OK.\r\n')
-
-    # pass command
-    def cmd_pass(self, arg):
-        self.connection.send('230 OK.\r\n')
-
-    # port command
-    def cmd_port(self, arg):
-        # get host and port
-        paramters = arg[1].split(',')
-        port = int(paramters[-2])<<8 + int(paramters[-1])
-        host = '.'join(paramters[:-2])
-        # set port and host
-        self.data_host = host
-        self.data_port = port
-        # print port received
-        print("[Data Port] " + str(self.data_port))
-        # send back ok code
-        self.connection.send('200 Port Received.\r\n')
-
-    # method to show other commands not implemented
-    def not_implemented(self, arg):
-        self.connection.send('500 Sorry.\r\n')
-
 class FTPserverThread(threading.Thread):
     def __init__(self,(conn,addr)):
         self.conn=conn
         self.addr=addr
         self.basewd=currdir
+        self.mode = "B"
         self.cwd=self.basewd
         threading.Thread.__init__(self)
 

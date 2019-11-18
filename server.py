@@ -137,6 +137,8 @@ class FTPServerThread(threading.Thread):
         self.data_host = None
         self.data_port = None
         self.data_socket = None
+        # mode (binary or ascii)
+        self.mode = 'ascii'
         # set initial working directory
         self.base_cwd = os.path.abspath('.')
         # current directory
@@ -167,6 +169,8 @@ class FTPServerThread(threading.Thread):
                     self.cmd_list(parameter)
                 elif parameter[0] == "PORT":
                     self.cmd_port(parameter)
+                elif parameter[0] == "QUIT":
+                    self.cmd_quit(parameter)
                 else:
                     self.not_implemented(cmd)
 
@@ -197,16 +201,6 @@ class FTPServerThread(threading.Thread):
         # send back ok code
         self.connection.send('200 Port Received.\r\n')
 
-    # method to change current working directory to current directory saved
-    def load_cwd(self):
-        # change directory to current directory saved
-        os.chdir(self.cwd)
-
-    # method to save current working directory
-    def save_cwd(self):
-        # set cwd
-        self.cwd = os.getcwd()
-
     # list command
     def cmd_list(self, arg):
         # set current directory
@@ -230,6 +224,37 @@ class FTPServerThread(threading.Thread):
             # notificate client
             self.connection.send('226 Directory Sent.\r\n')
 
+    # retr command
+    def cmd_retr(self, arg):
+        # load current working directory
+        self.load_cwd()
+        # get file
+        file = arg[1][:-2]
+        # check mode
+        if mode == 'ascii':
+            file_desc = open(file, 'r')
+        else:
+            file_desc = open(file, 'rb')
+         # send to client data port will be opened
+        self.connection.send('150 Data Socket Opening.\r\n')
+        # open socket
+        success_status = self.open_socket(self.data_host, self.data_port)
+        # if status is False, then data connection could not be opened, then notificates client
+        if not success_status:
+            self.connection.send('425 Could Not Open Data.\r\n')
+        else:
+            # read data
+            data = file.read(1024)
+            # while there is still data
+            while data:
+                # send data to socket
+                self.data_socket.send(data)
+                # read again
+                data = file.read(1024)
+            # close data socket
+            self.close_socket()
+            # notificate client
+            self.connection.send('226 Transfer Complete.\r\n')
 
     # method to show other commands not implemented
     def not_implemented(self, arg):
@@ -265,6 +290,16 @@ class FTPServerThread(threading.Thread):
             self.data_socket.close()
         # set socket, port and host to None
         self.data_socket = self.data_port = self.data_host = None
+
+    # method to change current working directory to current directory saved
+    def load_cwd(self):
+        # change directory to current directory saved
+        os.chdir(self.cwd)
+
+    # method to save current working directory
+    def save_cwd(self):
+        # set cwd
+        self.cwd = os.getcwd()
 
 
 
