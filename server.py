@@ -171,6 +171,8 @@ class FTPServerThread(threading.Thread):
                     self.cmd_port(parameter)
                 elif parameter[0] == "QUIT":
                     self.cmd_quit(parameter)
+                elif parameter[0] == "CWD":
+                    self.cmd_cwd(parameter)
                 else:
                     self.not_implemented(cmd)
 
@@ -256,6 +258,27 @@ class FTPServerThread(threading.Thread):
             # notificate client
             self.connection.send('226 Transfer Complete.\r\n')
 
+    # cwd command
+    def CWD(self,cmd):
+        # load curret working directory
+        self.load_cwd()
+        # get directory argument passed
+        chwd=cmd[4:-2]
+        # if starts with /
+        if chwd=='/':
+            # change to base working directory
+            chwd=self.basewd
+        elif chwd[0]=='/':
+            # if only starts with /, then add it base working directory
+            chwd=self.basewd+chwd
+        # change working directory
+        os.chdir(chwd)
+        # save working directory
+        self.save_cwd()
+        # send it was ok
+        self.conn.send('250 OK.\r\n')
+
+    
     # method to show other commands not implemented
     def not_implemented(self, arg):
         self.connection.send('500 Not Implemented.\r\n')
