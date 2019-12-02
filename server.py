@@ -259,11 +259,11 @@ class FTPServerThread(threading.Thread):
             self.connection.send('226 Transfer Complete.\r\n')
 
     # cwd command
-    def CWD(self,cmd):
+    def cmd_cwd(self,arg):
         # load curret working directory
         self.load_cwd()
         # get directory argument passed
-        chwd=cmd[4:-2]
+        chwd=arg[1]
         # if starts with /
         if chwd=='/':
             # change to base working directory
@@ -272,11 +272,14 @@ class FTPServerThread(threading.Thread):
             # if only starts with /, then add it base working directory
             chwd=self.basewd+chwd
         # change working directory
-        os.chdir(chwd)
-        # save working directory
-        self.save_cwd()
-        # send it was ok
-        self.conn.send('250 OK.\r\n')
+        try:
+            os.chdir(chwd)
+            # save working directory
+            self.save_cwd()
+            # send it was ok
+            self.connection.send('250 OK.\r\n')
+        except:
+            self.connection.send('550 Folder not Found.\r\n')
 
     
     # method to show other commands not implemented
