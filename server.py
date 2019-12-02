@@ -173,6 +173,10 @@ class FTPServerThread(threading.Thread):
                     self.cmd_quit(parameter)
                 elif parameter[0] == "CWD":
                     self.cmd_cwd(parameter)
+                elif parameter[0] == "RETR":
+                    self.cmd_retr(parameter)
+                elif parameter[0] == "STOR":
+                    self.cmd_stor(parameter)
                 else:
                     self.not_implemented(cmd)
 
@@ -226,17 +230,22 @@ class FTPServerThread(threading.Thread):
             # notificate client
             self.connection.send('226 Directory Sent.\r\n')
 
-    # retr command
-    def cmd_retr(self, arg):
-        # load current working directory
+    # stor command
+    def cmd_stor(self, arg):
+        # load cwd
         self.load_cwd()
-        # get file
-        file = arg[1][:-2]
-        # check mode
-        if mode == 'ascii':
-            file_desc = open(file, 'r')
-        else:
-            file_desc = open(file, 'rb')
+        # file to create
+        file = arg[1]
+        try:
+            # check mode
+            try:
+                file_desc = open(file, 'w')
+            except:
+                file_desc = open(file, 'x')
+            print("Creating file: " + file)
+        except:
+            self.connection.send('450 Cant open new file.\r\n')
+            return
          # send to client data port will be opened
         self.connection.send('150 Data Socket Opening.\r\n')
         # open socket
@@ -246,13 +255,51 @@ class FTPServerThread(threading.Thread):
             self.connection.send('425 Could Not Open Data.\r\n')
         else:
             # read data
-            data = file.read(1024)
+            data = self.data_socket.recv(256)
+            # while there is still data
+            while data:
+                # write data to file
+                file_desc.write(data)
+                # read again
+                data = self.data_socket.recv(256)
+
+            # close data socket
+            self.close_socket()
+            # notificate client
+            self.connection.send('226 Transfer Complete.\r\n')
+    
+    # retr command
+    def cmd_retr(self, arg):
+        # load current working directory
+        self.load_cwd()
+        # get file
+        file = arg[1]
+        # try to open it
+        try:
+            # check mode
+            if self.mode == 'ascii':
+                file_desc = open(file, 'r')
+            else:
+                file_desc = open(file, 'rb')
+        except:
+            self.connection.send('550 File not Found.\r\n')
+            return
+         # send to client data port will be opened
+        self.connection.send('150 Data Socket Opening.\r\n')
+        # open socket
+        success_status = self.open_socket(self.data_host, self.data_port)
+        # if status is False, then data connection could not be opened, then notificates client
+        if not success_status:
+            self.connection.send('425 Could Not Open Data.\r\n')
+        else:
+            # read data
+            data = file_desc.read(1024)
             # while there is still data
             while data:
                 # send data to socket
                 self.data_socket.send(data)
                 # read again
-                data = file.read(1024)
+                data = file_desc.read(1024)
             # close data socket
             self.close_socket()
             # notificate client
