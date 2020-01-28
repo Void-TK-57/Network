@@ -1,0 +1,37 @@
+[1] Reading Data...
+[1] Solving...
+Optimize a model with 490 rows, 50 columns and 980 nonzeros
+Variable types: 0 continuous, 50 integer (50 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Found heuristic solution: objective 6.0000000
+Presolve removed 345 rows and 0 columns
+Presolve time: 0.01s
+Presolved: 145 rows, 50 columns, 646 nonzeros
+Variable types: 0 continuous, 50 integer (50 binary)
+
+Root relaxation: objective 2.000000e+01, 11 iterations, 0.00 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0      20.0000000   20.00000  0.00%     -    0s
+
+Explored 0 nodes (11 simplex iterations) in 0.02 seconds
+Thread count was 4 (of 4 available processors)
+
+Solution count 2: 20 6 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.000000000000e+01, best bound 2.000000000000e+01, gap 0.0000%
+[1] Generating Graphs:
+[1] Generating: ./../results/graph50-02/graph50-02-Green.jpeg
+[1] Generating: ./../results/graph50-02/graph50-02-Blue.jpeg
+[1] Generating: ./../results/graph50-02/graph50-02-Orange.jpeg
+[1] Generating: ./../results/graph50-02/graph50-02-Purple.jpeg
+[1] Generating: ./../results/graph50-02/graph50-02-Pink.jpeg
+[1] Generating: ./../results/graph50-02/graph50-02-Red.jpeg
+[1] Done.
